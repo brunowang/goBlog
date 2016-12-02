@@ -11,15 +11,15 @@ type HomeController struct {
 	engine.ControllerInterface
 }
 
-func (*HomeController) Process(w http.ResponseWriter, r *http.Request) {
+func (this *HomeController) Process(w http.ResponseWriter, r *http.Request) {
 	log.Println("HomeController Process")
 	t, err := template.ParseFiles("src/views/T.header.tpl", "src/views/T.navbar.tpl", "src/views/home.html")
 	if err != nil {
 		log.Fatal(err)
 	}
-	var data map[interface{}]interface{}
-	//data["IsHome"] = true
-	//data["IsLogin"] = true
+	data := map[interface{}]interface{}{}
+	data["IsHome"] = true
+	data["IsLogin"] = true
 	err = t.ExecuteTemplate(w, "home.html", data)
 	checkError(err)
 }
