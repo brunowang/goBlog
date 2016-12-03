@@ -31,7 +31,7 @@ type Category struct {
 	Created         time.Time `xorm:"index"`
 	Views           int64     `xorm:"index"`
 	TopicTime       time.Time `xorm:"index"`
-	TopicCount      int64
+	TopicCount      int
 	TopicLastUserId int64
 }
 
@@ -40,6 +40,7 @@ type Topic struct {
 	Id              int64
 	Uid             int64
 	Title           string
+	Category        string
 	Content         string `xorm:"size(5000)"`
 	Attachment      string
 	Created         time.Time `xorm:"index"`
@@ -47,7 +48,7 @@ type Topic struct {
 	Views           int64     `xorm:"index"`
 	Author          string
 	ReplyTime       time.Time `xorm:"index"`
-	ReplyCount      int64
+	ReplyCount      int
 	ReplyLastUserId int64
 }
 
@@ -100,14 +101,28 @@ func GetAllCategories() ([]*Category, error) {
 	return cates, err
 }
 
-func AddTopic(title, content string) error {
+func AddTopic(title, category, content string) error {
 	topic := &Topic{
-		Title:   title,
-		Content: content,
-		Created: time.Now(),
-		Updated: time.Now(),
+		Title:    title,
+		Category: category,
+		Content:  content,
+		Created:  time.Now(),
+		Updated:  time.Now(),
 	}
 	_, err := orm.Insert(topic)
+	if err != nil {
+		return err
+	}
+
+	// 更新分类统计
+	cate := new(Category)
+	var topics []*Topic
+	topics, err = GetAllTopics(category, false)
+	if err == nil {
+		cate.TopicCount = len(topics)
+		_, err = orm.Where("title=?", category).Update(cate)
+	}
+
 	return err
 }
 
@@ -129,19 +144,48 @@ func GetTopic(tid string) (*Topic, error) {
 	return topic, nil
 }
 
-func ModifyTopic(tid, title, content string) error {
+func ModifyTopic(tid, title, category, content string) error {
 	tidNum, err := strconv.ParseInt(tid, 10, 64)
 	if err != nil {
 		return err
 	}
 	topic := new(Topic)
 	has, err := orm.Id(tidNum).Get(topic)
+
+	var oldCate string
 	if has == true {
+		oldCate = topic.Category
 		topic.Title = title
+		topic.Category = category
 		topic.Content = content
 		topic.Updated = time.Now()
 		_, err = orm.Id(tidNum).Update(topic)
 	}
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	// 更新旧分类统计
+	if len(oldCate) > 0 {
+		cate := new(Category)
+		var topics []*Topic
+		topics, err = GetAllTopics(oldCate, false)
+		if err == nil {
+			cate.TopicCount = len(topics)
+			_, err = orm.Where("title=?", oldCate).Update(cate)
+		}
+	}
+
+	// 更新新分类统计
+	cate := new(Category)
+	var topics []*Topic
+	topics, err = GetAllTopics(category, false)
+	if err == nil {
+		cate.TopicCount = len(topics)
+		_, err = orm.Where("title=?", category).Update(cate)
+	}
+
 	return err
 }
 
@@ -152,17 +196,46 @@ func DeleteTopic(tid string) error {
 	}
 
 	topic := &Topic{Id: tidNum}
-	_, err = orm.Delete(topic)
+	has, err := orm.Get(topic)
+
+	var oldCate string
+	if has == true {
+		oldCate = topic.Category
+		_, err = orm.Delete(topic)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 更新分类统计
+	if len(oldCate) > 0 {
+		cate := new(Category)
+		var topics []*Topic
+		topics, err = GetAllTopics(oldCate, false)
+		if err == nil {
+			cate.TopicCount = len(topics)
+			_, err = orm.Where("title=?", oldCate).Update(cate)
+		}
+	}
+
 	return err
 }
 
-func GetAllTopics(isDesc bool) (topics []*Topic, err error) {
+func GetAllTopics(category string, isHomePage bool) (topics []*Topic, err error) {
 	topics = make([]*Topic, 0)
 
-	if isDesc {
-		err = orm.Desc("created").Find(&topics)
+	if isHomePage {
+		if len(category) > 0 {
+			err = orm.Where("category=?", category).Desc("created").Find(&topics)
+		} else {
+			err = orm.Desc("created").Find(&topics)
+		}
 	} else {
-		err = orm.Find(&topics)
+		if len(category) > 0 {
+			err = orm.Where("category=?", category).Find(&topics)
+		} else {
+			err = orm.Find(&topics)
+		}
 	}
 	return topics, err
 }

@@ -10,15 +10,26 @@
 		</div>
 		<br/><br/>
 		<div class="container">
-			{{range .Topics}}
-			<div class="page-header">
-				<h1><a href="/topic?op=view&tid={{.Id}}">{{.Title}}</a></h1>
-				<h6 class="text-muted">文章发表于 {{.Created}}，共有 {{.Views}} 次浏览， {{.ReplyCount}} 个评论</h6>	
-				<p>
-					{{.Content}}
-				</p>
+			<div class="col-md-9">
+				{{range .Topics}}
+				<div class="page-header">
+					<h1><a href="/topic?op=view&tid={{.Id}}">{{.Title}}</a></h1>
+					<h6 class="text-muted">文章发表于 {{.Created}}，共有 {{.Views}} 次浏览， {{.ReplyCount}} 个评论</h6>	
+					<p>
+						{{.Content}}
+					</p>
+				</div>
+				{{end}}
 			</div>
-			{{end}}
+			
+			<div class="col-md-3">
+                <h3>文章分类</h3>
+                <ul>
+                    {{range .Categories}}
+                    <li><a href="/home?cate={{.Title}}">{{.Title}}</a></li>
+                    {{end}}
+                </ul>
+			</div>
 		</div>
 
 		{{template "footer"}}

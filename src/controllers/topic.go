@@ -44,7 +44,7 @@ func (this *TopicController) showTopicPage(w http.ResponseWriter, r *http.Reques
 	data["IsTopic"] = true
 	data["IsLogin"] = checkAccount(r)
 
-	topics, err := models.GetAllTopics(false)
+	topics, err := models.GetAllTopics("", false)
 	if err != nil {
 		log.Println(err)
 	}
@@ -61,12 +61,13 @@ func (this *TopicController) addOrModify(w http.ResponseWriter, r *http.Request)
 	tid := r.Form.Get("tid")
 	title := r.Form.Get("title")
 	content := r.Form.Get("content")
+	category := r.Form.Get("category")
 
 	var err error
 	if len(tid) == 0 {
-		err = models.AddTopic(title, content)
+		err = models.AddTopic(title, category, content)
 	} else {
-		err = models.ModifyTopic(tid, title, content)
+		err = models.ModifyTopic(tid, title, category, content)
 	}
 	if err != nil {
 		log.Fatal(err)
