@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"engine"
-	"html/template"
 	"log"
 	"models"
 	"net/http"
@@ -45,15 +44,13 @@ func (this *CategoryController) Process(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	t, err := template.ParseFiles("src/views/T.header.tpl", "src/views/T.navbar.tpl", "src/views/category.html")
-	engine.CheckError(err)
 	data := map[interface{}]interface{}{}
 	data["IsCategory"] = true
 	data["IsLogin"] = checkAccount(r)
 
+	var err error
 	data["Categories"], err = models.GetAllCategories()
 	engine.CheckError(err)
 
-	err = t.ExecuteTemplate(w, "category.html", data)
-	engine.CheckError(err)
+	engine.Template(w, "category.html", data)
 }

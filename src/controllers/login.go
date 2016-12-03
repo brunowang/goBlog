@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"engine"
-	"html/template"
 	"log"
 	"net/http"
 	//"time"
@@ -43,10 +42,7 @@ func (this *LoginController) Process(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Form.Get("submit") == "" {
-		t, err := template.ParseFiles("src/views/T.header.tpl", "src/views/T.navbar.tpl", "src/views/login.html")
-		engine.CheckError(err)
-		err = t.ExecuteTemplate(w, "login.html", nil)
-		engine.CheckError(err)
+		engine.Template(w, "login.html", nil)
 	}
 }
 
