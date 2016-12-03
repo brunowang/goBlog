@@ -21,7 +21,7 @@ const (
 )
 
 var (
-	engine *xorm.Engine
+	orm *xorm.Engine
 )
 
 // 分类
@@ -58,11 +58,11 @@ func RegisterDB() {
 		os.Create(_DB_NAME)
 	}
 	var err error
-	engine, err = xorm.NewEngine(_SQLITE3_DRIVER, _DB_NAME)
+	orm, err = xorm.NewEngine(_SQLITE3_DRIVER, _DB_NAME)
 	if err != nil {
 		log.Fatalf("fail to create xorm Engine: %v", err)
 	}
-	err = engine.Sync(new(Category), new(Topic))
+	err = orm.Sync(new(Category), new(Topic))
 }
 
 func AddCategory(name string) error {
@@ -73,18 +73,14 @@ func AddCategory(name string) error {
 	}
 
 	// 查询数据
-	has, err := engine.Where("title=?", name).Get(cate)
+	has, err := orm.Where("title=?", name).Get(cate)
 	if has == true {
 		return errors.New("category title already exist.")
 	}
 
 	// 插入数据
-	_, err = engine.Insert(cate)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err = orm.Insert(cate)
+	return err
 }
 
 func DeleteCategory(id string) error {
@@ -94,12 +90,79 @@ func DeleteCategory(id string) error {
 	}
 
 	cate := &Category{Id: cid}
-	_, err = engine.Delete(cate)
+	_, err = orm.Delete(cate)
 	return err
 }
 
 func GetAllCategories() ([]*Category, error) {
 	cates := make([]*Category, 0)
-	err := engine.Find(&cates)
+	err := orm.Find(&cates)
 	return cates, err
+}
+
+func AddTopic(title, content string) error {
+	topic := &Topic{
+		Title:   title,
+		Content: content,
+		Created: time.Now(),
+		Updated: time.Now(),
+	}
+	_, err := orm.Insert(topic)
+	return err
+}
+
+func GetTopic(tid string) (*Topic, error) {
+	tidNum, err := strconv.ParseInt(tid, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	topic := new(Topic)
+	has, err := orm.Id(tidNum).Get(topic)
+	if err != nil {
+		return nil, err
+	} else if has == false {
+		return nil, errors.New("topic id not exist.")
+	}
+
+	topic.Views++
+	_, err = orm.Id(tidNum).Update(topic)
+	return topic, nil
+}
+
+func ModifyTopic(tid, title, content string) error {
+	tidNum, err := strconv.ParseInt(tid, 10, 64)
+	if err != nil {
+		return err
+	}
+	topic := new(Topic)
+	has, err := orm.Id(tidNum).Get(topic)
+	if has == true {
+		topic.Title = title
+		topic.Content = content
+		topic.Updated = time.Now()
+		_, err = orm.Id(tidNum).Update(topic)
+	}
+	return err
+}
+
+func DeleteTopic(tid string) error {
+	tidNum, err := strconv.ParseInt(tid, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	topic := &Topic{Id: tidNum}
+	_, err = orm.Delete(topic)
+	return err
+}
+
+func GetAllTopics(isDesc bool) (topics []*Topic, err error) {
+	topics = make([]*Topic, 0)
+
+	if isDesc {
+		err = orm.Desc("created").Find(&topics)
+	} else {
+		err = orm.Find(&topics)
+	}
+	return topics, err
 }

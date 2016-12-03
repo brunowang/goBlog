@@ -3,6 +3,7 @@ package controllers
 import (
 	"engine"
 	"log"
+	"models"
 	"net/http"
 )
 
@@ -16,6 +17,12 @@ func (this *HomeController) Process(w http.ResponseWriter, r *http.Request) {
 	data := map[interface{}]interface{}{}
 	data["IsHome"] = true
 	data["IsLogin"] = checkAccount(r)
+
+	topics, err := models.GetAllTopics(true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	data["Topics"] = topics
 
 	engine.Template(w, "home.html", data)
 }

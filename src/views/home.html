@@ -1,5 +1,5 @@
 {{template "header"}}
-    	<title>首页 - 我的 beego 博客</title>
+    	<title>首页 - 我的 golang 博客</title>
   	</head>
 	
 	<body>
@@ -10,13 +10,15 @@
 		</div>
 		<br/><br/>
 		<div class="container">
+			{{range .Topics}}
 			<div class="page-header">
-				<h1>我的一篇博客</h1>
-				<h6 class="text-muted">文章发表于 2013 年 8 月 25日 11 点 31 分，共有 53 次浏览， 12 个评论</h6>	
+				<h1><a href="/topic?op=view&tid={{.Id}}">{{.Title}}</a></h1>
+				<h6 class="text-muted">文章发表于 {{.Created}}，共有 {{.Views}} 次浏览， {{.ReplyCount}} 个评论</h6>	
 				<p>
-					今天，我发表了我的博客的第一篇文章。
+					{{.Content}}
 				</p>
 			</div>
+			{{end}}
 		</div>
 
 		{{template "footer"}}

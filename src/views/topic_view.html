@@ -1,0 +1,21 @@
+{{template "header"}}
+    	<title>{{.Topic.Title}} - 我的 golang 博客</title>
+  	</head>
+
+	<body>
+		<div class="navbar navbar-default navbar-fixed-top">
+			<div class="container">
+				{{template "navbar" .}}
+			</div>	
+		</div>
+		<br/><br/>
+		<div class="container">
+			{{with .Topic}}
+			<h1>{{.Title}}</h1>
+			{{.Content}}
+			{{end}}
+		</div>
+
+		{{template "footer"}}
+	</body>
+</html>
