@@ -3,6 +3,7 @@ package engine
 import (
 	"log"
 	"net/http"
+	"strings"
 )
 
 var instance_ *Dispatcher
@@ -20,7 +21,9 @@ func GetDispatcher() *Dispatcher {
 
 func HandleHttp(w http.ResponseWriter, r *http.Request) {
 	log.Println("Dispatcher HandleHttp Func.")
-	if handler, ok := GetDispatcher().handlers[r.URL.String()]; ok {
+	r.ParseForm()
+	url := strings.Split(r.URL.String(), "?")[0]
+	if handler, ok := GetDispatcher().handlers[url]; ok {
 		handler.Process(w, r)
 	}
 }

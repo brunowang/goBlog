@@ -19,13 +19,7 @@ func (this *HomeController) Process(w http.ResponseWriter, r *http.Request) {
 	}
 	data := map[interface{}]interface{}{}
 	data["IsHome"] = true
-	data["IsLogin"] = true
+	data["IsLogin"] = checkAccount(r)
 	err = t.ExecuteTemplate(w, "home.html", data)
-	checkError(err)
-}
-
-func checkError(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
+	engine.CheckError(err)
 }
