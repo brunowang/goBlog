@@ -2,6 +2,7 @@ package engine
 
 import (
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -23,4 +24,19 @@ func Template(w http.ResponseWriter, name string, data map[interface{}]interface
 func IsExist(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil || os.IsExist(err)
+}
+
+func SaveToFile(r *http.Request, fromfile, tofile string) error {
+	file, _, err := r.FormFile(fromfile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	f, err := os.OpenFile(tofile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = io.Copy(f, file)
+	return err
 }

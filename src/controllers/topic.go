@@ -5,6 +5,7 @@ import (
 	"log"
 	"models"
 	"net/http"
+	"path"
 	"strings"
 )
 
@@ -59,17 +60,34 @@ func (this *TopicController) addOrModify(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	// 解析表单
+	log.Println(r.Form)
 	tid := r.Form.Get("tid")
 	title := r.Form.Get("title")
 	content := r.Form.Get("content")
 	category := r.Form.Get("category")
 	label := r.Form.Get("label")
 
-	var err error
+	// 获取附件
+	_, fh, err := r.FormFile("attachment")
+	if err != nil {
+		log.Println(err)
+	}
+
+	var attachment string
+	if fh != nil {
+		// 保存附件
+		attachment = fh.Filename
+		log.Println(attachment)
+		err = engine.SaveToFile(r, "attachment", path.Join("attachment", attachment))
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
 	if len(tid) == 0 {
-		err = models.AddTopic(title, category, label, content)
+		err = models.AddTopic(title, category, label, content, attachment)
 	} else {
-		err = models.ModifyTopic(tid, title, category, label, content)
+		err = models.ModifyTopic(tid, title, category, label, content, attachment)
 	}
 	if err != nil {
 		log.Fatal(err)

@@ -112,17 +112,18 @@ func GetAllCategories() ([]*Category, error) {
 	return cates, err
 }
 
-func AddTopic(title, category, label, content string) error {
+func AddTopic(title, category, label, content, attachment string) error {
 	// 处理标签
 	label = "$" + strings.Join(strings.Split(label, " "), "#$") + "#"
 
 	topic := &Topic{
-		Title:    title,
-		Category: category,
-		Labels:   label,
-		Content:  content,
-		Created:  time.Now(),
-		Updated:  time.Now(),
+		Title:      title,
+		Category:   category,
+		Labels:     label,
+		Content:    content,
+		Attachment: attachment,
+		Created:    time.Now(),
+		Updated:    time.Now(),
 	}
 	_, err := orm.Insert(topic)
 	if err != nil {
@@ -162,7 +163,7 @@ func GetTopic(tid string) (*Topic, error) {
 	return topic, nil
 }
 
-func ModifyTopic(tid, title, category, label, content string) error {
+func ModifyTopic(tid, title, category, label, content, attachment string) error {
 	tidNum, err := strconv.ParseInt(tid, 10, 64)
 	if err != nil {
 		return err
@@ -173,14 +174,16 @@ func ModifyTopic(tid, title, category, label, content string) error {
 	topic := new(Topic)
 	has, err := orm.Id(tidNum).Get(topic)
 
-	var oldCate, oldLabel string
+	var oldCate, oldLabel, oldAttach string
 	if has == true {
 		oldCate = topic.Category
 		oldLabel = topic.Labels
+		oldAttach = topic.Attachment
 		topic.Title = title
 		topic.Category = category
 		topic.Labels = label
 		topic.Content = content
+		topic.Attachment = attachment
 		topic.Updated = time.Now()
 		_, err = orm.Id(tidNum).Update(topic)
 	}
@@ -198,6 +201,11 @@ func ModifyTopic(tid, title, category, label, content string) error {
 			cate.TopicCount = len(topics)
 			_, err = orm.Where("title=?", oldCate).Update(cate)
 		}
+	}
+
+	// 删除旧的附件
+	if len(oldAttach) > 0 {
+		os.Remove(path.Join("attachment", oldAttach))
 	}
 
 	// 更新新分类统计
@@ -221,10 +229,11 @@ func DeleteTopic(tid string) error {
 	topic := &Topic{Id: tidNum}
 	has, err := orm.Get(topic)
 
-	var oldCate, oldLabel string
+	var oldCate, oldLabel, oldAttach string
 	if has == true {
 		oldCate = topic.Category
 		oldLabel = topic.Labels
+		oldAttach = topic.Attachment
 		_, err = orm.Delete(topic)
 		if err != nil {
 			return err
@@ -240,6 +249,11 @@ func DeleteTopic(tid string) error {
 			cate.TopicCount = len(topics)
 			_, err = orm.Where("title=?", oldCate).Update(cate)
 		}
+	}
+
+	// 删除附件
+	if len(oldAttach) > 0 {
+		os.Remove(path.Join("attachment", oldAttach))
 	}
 
 	return err
@@ -275,6 +289,19 @@ func AddReply(tid, nickname, content string) error {
 		Created: time.Now(),
 	}
 	_, err = orm.Insert(reply)
+	if err != nil {
+		return err
+	}
+
+	//更新回复统计
+	topic := new(Topic)
+	var replies []*Reply
+	replies, err = GetAllReplies(tid)
+	if err == nil {
+		topic.ReplyTime = time.Now()
+		topic.ReplyCount = len(replies)
+		_, err = orm.Where("tid=?", tidNum).Update(topic)
+	}
 	return err
 }
 
@@ -297,6 +324,28 @@ func DeleteReply(rid string) error {
 	}
 
 	reply := &Reply{Id: ridNum}
-	_, err = orm.Delete(reply)
+	has, err := orm.Get(reply)
+	var tidNum int64
+	if has == true {
+		tidNum = reply.Tid
+		_, err = orm.Delete(reply)
+		if err != nil {
+			return err
+		}
+	}
+
+	replies := make([]*Reply, 0)
+	err = orm.Where("tid=?", tidNum).Desc("created").Find(&replies)
+	if err != nil {
+		return err
+	}
+
+	topic := &Topic{Id: tidNum}
+	has, err = orm.Get(topic)
+	if has == true {
+		topic.ReplyTime = replies[0].Created
+		topic.ReplyCount = len(replies)
+		_, err = orm.Update(topic)
+	}
 	return err
 }

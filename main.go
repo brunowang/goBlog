@@ -6,6 +6,7 @@ import (
 	"log"
 	"models"
 	"net/http"
+	"os"
 )
 
 func init() {
@@ -20,6 +21,10 @@ func main() {
 	dispatcher.AddHttpHandler("/category", &controllers.CategoryController{})
 	dispatcher.AddHttpHandler("/topic", &controllers.TopicController{})
 	dispatcher.AddHttpHandler("/reply", &controllers.ReplyController{})
+
+	// 附件处理
+	os.Mkdir("attachment", os.ModePerm)
+	dispatcher.AddHttpHandler("/attachment", &controllers.AttachController{})
 
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
