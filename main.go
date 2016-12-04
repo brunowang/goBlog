@@ -19,6 +19,7 @@ func main() {
 	dispatcher.AddHttpHandler("/login", &controllers.LoginController{})
 	dispatcher.AddHttpHandler("/category", &controllers.CategoryController{})
 	dispatcher.AddHttpHandler("/topic", &controllers.TopicController{})
+	dispatcher.AddHttpHandler("/reply", &controllers.ReplyController{})
 
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {

@@ -114,7 +114,8 @@ func (this *TopicController) showModifyPage(w http.ResponseWriter, r *http.Reque
 }
 
 func (this *TopicController) view(w http.ResponseWriter, r *http.Request) {
-	topic, err := models.GetTopic(r.Form.Get("tid"))
+	tid := r.Form.Get("tid")
+	topic, err := models.GetTopic(tid)
 	if err != nil {
 		log.Fatal(err)
 		http.Redirect(w, r, "/", 302)
@@ -123,5 +124,13 @@ func (this *TopicController) view(w http.ResponseWriter, r *http.Request) {
 	data := map[interface{}]interface{}{}
 	data["Topic"] = topic
 
+	replies, err := models.GetAllReplies(tid)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	data["Replies"] = replies
+	data["IsLogin"] = checkAccount(r)
 	engine.Template(w, "topic_view.html", data)
 }

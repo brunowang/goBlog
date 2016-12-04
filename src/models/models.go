@@ -52,6 +52,15 @@ type Topic struct {
 	ReplyLastUserId int64
 }
 
+// 评论
+type Reply struct {
+	Id      int64
+	Tid     int64
+	Name    string
+	Content string    `orm:"size(1000)"`
+	Created time.Time `orm:"index"`
+}
+
 func RegisterDB() {
 	// 检查数据库文件
 	if !com.IsExist(_DB_NAME) {
@@ -63,7 +72,7 @@ func RegisterDB() {
 	if err != nil {
 		log.Fatalf("fail to create xorm Engine: %v", err)
 	}
-	err = orm.Sync(new(Category), new(Topic))
+	err = orm.Sync(new(Category), new(Topic), new(Reply))
 }
 
 func AddCategory(name string) error {
@@ -238,4 +247,43 @@ func GetAllTopics(category string, isHomePage bool) (topics []*Topic, err error)
 		}
 	}
 	return topics, err
+}
+
+func AddReply(tid, nickname, content string) error {
+	tidNum, err := strconv.ParseInt(tid, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	reply := &Reply{
+		Tid:     tidNum,
+		Name:    nickname,
+		Content: content,
+		Created: time.Now(),
+	}
+	_, err = orm.Insert(reply)
+	return err
+}
+
+func GetAllReplies(tid string) (replies []*Reply, err error) {
+	tidNum, err := strconv.ParseInt(tid, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	replies = make([]*Reply, 0)
+
+	err = orm.Id(tidNum).Find(&replies)
+	return replies, err
+}
+
+func DeleteReply(rid string) error {
+	ridNum, err := strconv.ParseInt(rid, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	reply := &Reply{Id: ridNum}
+	_, err = orm.Delete(reply)
+	return err
 }
