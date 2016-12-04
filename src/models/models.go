@@ -1,14 +1,15 @@
 package models
 
 import (
+	"engine"
 	"errors"
 	"log"
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/Unknwon/com"
 	"github.com/go-xorm/xorm"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -41,6 +42,7 @@ type Topic struct {
 	Uid             int64
 	Title           string
 	Category        string
+	Labels          string
 	Content         string `xorm:"size(5000)"`
 	Attachment      string
 	Created         time.Time `xorm:"index"`
@@ -63,7 +65,7 @@ type Reply struct {
 
 func RegisterDB() {
 	// 检查数据库文件
-	if !com.IsExist(_DB_NAME) {
+	if !engine.IsExist(_DB_NAME) {
 		os.MkdirAll(path.Dir(_DB_NAME), os.ModePerm)
 		os.Create(_DB_NAME)
 	}
@@ -110,10 +112,14 @@ func GetAllCategories() ([]*Category, error) {
 	return cates, err
 }
 
-func AddTopic(title, category, content string) error {
+func AddTopic(title, category, label, content string) error {
+	// 处理标签
+	label = "$" + strings.Join(strings.Split(label, " "), "#$") + "#"
+
 	topic := &Topic{
 		Title:    title,
 		Category: category,
+		Labels:   label,
 		Content:  content,
 		Created:  time.Now(),
 		Updated:  time.Now(),
@@ -126,7 +132,7 @@ func AddTopic(title, category, content string) error {
 	// 更新分类统计
 	cate := new(Category)
 	var topics []*Topic
-	topics, err = GetAllTopics(category, false)
+	topics, err = GetAllTopics(category, label, false)
 	if err == nil {
 		cate.TopicCount = len(topics)
 		_, err = orm.Where("title=?", category).Update(cate)
@@ -150,22 +156,30 @@ func GetTopic(tid string) (*Topic, error) {
 
 	topic.Views++
 	_, err = orm.Id(tidNum).Update(topic)
+
+	topic.Labels = strings.Replace(strings.Replace(
+		topic.Labels, "#", " ", -1), "$", "", -1)
 	return topic, nil
 }
 
-func ModifyTopic(tid, title, category, content string) error {
+func ModifyTopic(tid, title, category, label, content string) error {
 	tidNum, err := strconv.ParseInt(tid, 10, 64)
 	if err != nil {
 		return err
 	}
+
+	label = "$" + strings.Join(strings.Split(label, " "), "#$") + "#"
+
 	topic := new(Topic)
 	has, err := orm.Id(tidNum).Get(topic)
 
-	var oldCate string
+	var oldCate, oldLabel string
 	if has == true {
 		oldCate = topic.Category
+		oldLabel = topic.Labels
 		topic.Title = title
 		topic.Category = category
+		topic.Labels = label
 		topic.Content = content
 		topic.Updated = time.Now()
 		_, err = orm.Id(tidNum).Update(topic)
@@ -179,7 +193,7 @@ func ModifyTopic(tid, title, category, content string) error {
 	if len(oldCate) > 0 {
 		cate := new(Category)
 		var topics []*Topic
-		topics, err = GetAllTopics(oldCate, false)
+		topics, err = GetAllTopics(oldCate, oldLabel, false)
 		if err == nil {
 			cate.TopicCount = len(topics)
 			_, err = orm.Where("title=?", oldCate).Update(cate)
@@ -189,7 +203,7 @@ func ModifyTopic(tid, title, category, content string) error {
 	// 更新新分类统计
 	cate := new(Category)
 	var topics []*Topic
-	topics, err = GetAllTopics(category, false)
+	topics, err = GetAllTopics(category, label, false)
 	if err == nil {
 		cate.TopicCount = len(topics)
 		_, err = orm.Where("title=?", category).Update(cate)
@@ -207,9 +221,10 @@ func DeleteTopic(tid string) error {
 	topic := &Topic{Id: tidNum}
 	has, err := orm.Get(topic)
 
-	var oldCate string
+	var oldCate, oldLabel string
 	if has == true {
 		oldCate = topic.Category
+		oldLabel = topic.Labels
 		_, err = orm.Delete(topic)
 		if err != nil {
 			return err
@@ -220,7 +235,7 @@ func DeleteTopic(tid string) error {
 	if len(oldCate) > 0 {
 		cate := new(Category)
 		var topics []*Topic
-		topics, err = GetAllTopics(oldCate, false)
+		topics, err = GetAllTopics(oldCate, oldLabel, false)
 		if err == nil {
 			cate.TopicCount = len(topics)
 			_, err = orm.Where("title=?", oldCate).Update(cate)
@@ -230,21 +245,19 @@ func DeleteTopic(tid string) error {
 	return err
 }
 
-func GetAllTopics(category string, isHomePage bool) (topics []*Topic, err error) {
+func GetAllTopics(category, label string, isHomePage bool) (topics []*Topic, err error) {
 	topics = make([]*Topic, 0)
-
 	if isHomePage {
+		ormSession := orm.Desc("created")
 		if len(category) > 0 {
-			err = orm.Where("category=?", category).Desc("created").Find(&topics)
-		} else {
-			err = orm.Desc("created").Find(&topics)
+			ormSession = orm.Where("category=?", category)
 		}
+		if len(label) > 0 {
+			ormSession = ormSession.Where("labels like ?", "%$"+label+"#%")
+		}
+		err = ormSession.Find(&topics)
 	} else {
-		if len(category) > 0 {
-			err = orm.Where("category=?", category).Find(&topics)
-		} else {
-			err = orm.Find(&topics)
-		}
+		err = orm.Find(&topics)
 	}
 	return topics, err
 }

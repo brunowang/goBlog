@@ -18,7 +18,7 @@ func (this *HomeController) Process(w http.ResponseWriter, r *http.Request) {
 	data["IsHome"] = true
 	data["IsLogin"] = checkAccount(r)
 
-	topics, err := models.GetAllTopics(r.Form.Get("cate"), true)
+	topics, err := models.GetAllTopics(r.Form.Get("cate"), r.Form.Get("label"), true)
 	if err != nil {
 		log.Fatal(err)
 	}

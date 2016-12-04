@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 )
 
 func CheckError(err error) {
@@ -17,4 +18,9 @@ func Template(w http.ResponseWriter, name string, data map[interface{}]interface
 	CheckError(err)
 	err = t.ExecuteTemplate(w, name, data)
 	CheckError(err)
+}
+
+func IsExist(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil || os.IsExist(err)
 }

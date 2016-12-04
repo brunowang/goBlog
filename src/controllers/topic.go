@@ -5,6 +5,7 @@ import (
 	"log"
 	"models"
 	"net/http"
+	"strings"
 )
 
 type TopicController struct {
@@ -44,7 +45,7 @@ func (this *TopicController) showTopicPage(w http.ResponseWriter, r *http.Reques
 	data["IsTopic"] = true
 	data["IsLogin"] = checkAccount(r)
 
-	topics, err := models.GetAllTopics("", false)
+	topics, err := models.GetAllTopics("", "", false)
 	if err != nil {
 		log.Println(err)
 	}
@@ -62,12 +63,13 @@ func (this *TopicController) addOrModify(w http.ResponseWriter, r *http.Request)
 	title := r.Form.Get("title")
 	content := r.Form.Get("content")
 	category := r.Form.Get("category")
+	label := r.Form.Get("label")
 
 	var err error
 	if len(tid) == 0 {
-		err = models.AddTopic(title, category, content)
+		err = models.AddTopic(title, category, label, content)
 	} else {
-		err = models.ModifyTopic(tid, title, category, content)
+		err = models.ModifyTopic(tid, title, category, label, content)
 	}
 	if err != nil {
 		log.Fatal(err)
@@ -80,8 +82,9 @@ func (this *TopicController) showAddPage(w http.ResponseWriter, r *http.Request)
 		http.Redirect(w, r, "/login", 302)
 		return
 	}
-
-	engine.Template(w, "topic_add.html", nil)
+	data := map[interface{}]interface{}{}
+	data["IsLogin"] = true
+	engine.Template(w, "topic_add.html", data)
 }
 
 func (this *TopicController) delete(w http.ResponseWriter, r *http.Request) {
@@ -99,6 +102,11 @@ func (this *TopicController) delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *TopicController) showModifyPage(w http.ResponseWriter, r *http.Request) {
+	if !checkAccount(r) {
+		http.Redirect(w, r, "/login", 302)
+		return
+	}
+
 	tid := r.Form.Get("tid")
 	topic, err := models.GetTopic(tid)
 	if err != nil {
@@ -109,6 +117,7 @@ func (this *TopicController) showModifyPage(w http.ResponseWriter, r *http.Reque
 	data := map[interface{}]interface{}{}
 	data["Topic"] = topic
 	data["Tid"] = tid
+	data["IsLogin"] = true
 
 	engine.Template(w, "topic_modify.html", data)
 }
@@ -123,6 +132,7 @@ func (this *TopicController) view(w http.ResponseWriter, r *http.Request) {
 	}
 	data := map[interface{}]interface{}{}
 	data["Topic"] = topic
+	data["Labels"] = strings.Split(topic.Labels, " ")
 
 	replies, err := models.GetAllReplies(tid)
 	if err != nil {

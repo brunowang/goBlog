@@ -10,8 +10,14 @@
 		</div>
 		<br/><br/>
 		<div class="container">
+			{{$labels := .Labels}}
 			{{with .Topic}}
 			<h1>{{.Title}} <small>{{.Category}}</small></h1>
+			<h5>
+				{{range $labels}}
+				<a href="/home?label={{.}}">{{.}}</a>
+				{{end}}
+			</h5>
 			{{.Content}}
 			{{end}}
 		</div>
