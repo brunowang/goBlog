@@ -21,7 +21,15 @@ func GetDispatcher() *Dispatcher {
 
 func HandleHttp(w http.ResponseWriter, r *http.Request) {
 	log.Println("Dispatcher HandleHttp Func.")
-	r.ParseForm()
+
+	if strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
+		if err := r.ParseMultipartForm(1 << 20); err != nil {
+			log.Fatal(err.Error())
+		}
+	} else if err := r.ParseForm(); err != nil {
+		log.Fatal(err.Error())
+	}
+
 	url := strings.Split(r.URL.String(), "?")[0]
 	if handler, ok := GetDispatcher().handlers[url]; ok {
 		handler.Process(w, r)
