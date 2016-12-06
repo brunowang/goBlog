@@ -22,6 +22,8 @@ func main() {
 	dispatcher.AddHttpHandler("/topic", &controllers.TopicController{})
 	dispatcher.AddHttpHandler("/reply", &controllers.ReplyController{})
 
+	http.Handle("/", http.FileServer(http.Dir("./")))
+
 	// 附件处理
 	os.Mkdir("attachment", os.ModePerm)
 	dispatcher.AddHttpHandler("/attachment", &controllers.AttachController{})
