@@ -38,6 +38,7 @@ func (this *ReplyController) Delete(w http.ResponseWriter, r *http.Request) {
 	if !checkAccount(r) {
 		return
 	}
+
 	tid := r.Form.Get("tid")
 	err := models.DeleteReply(r.Form.Get("rid"))
 	if err != nil {
