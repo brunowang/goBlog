@@ -28,7 +28,7 @@ func (this *ReplyController) Add(w http.ResponseWriter, r *http.Request) {
 	err := models.AddReply(tid,
 		r.Form.Get("nickname"), r.Form.Get("content"))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	http.Redirect(w, r, "/topic?op=view&tid="+tid, 302)
@@ -41,7 +41,7 @@ func (this *ReplyController) Delete(w http.ResponseWriter, r *http.Request) {
 	tid := r.Form.Get("tid")
 	err := models.DeleteReply(r.Form.Get("rid"))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	http.Redirect(w, r, "/topic?op=view&tid="+tid, 302)

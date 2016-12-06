@@ -300,7 +300,7 @@ func AddReply(tid, nickname, content string) error {
 	if err == nil {
 		topic.ReplyTime = time.Now()
 		topic.ReplyCount = len(replies)
-		_, err = orm.Where("tid=?", tidNum).Update(topic)
+		_, err = orm.Id(tidNum).Update(topic)
 	}
 	return err
 }
@@ -313,7 +313,7 @@ func GetAllReplies(tid string) (replies []*Reply, err error) {
 
 	replies = make([]*Reply, 0)
 
-	err = orm.Id(tidNum).Find(&replies)
+	err = orm.Where("tid=?", tidNum).Find(&replies)
 	return replies, err
 }
 
@@ -340,12 +340,14 @@ func DeleteReply(rid string) error {
 		return err
 	}
 
-	topic := &Topic{Id: tidNum}
+	topic := &Topic{}
 	has, err = orm.Get(topic)
 	if has == true {
-		topic.ReplyTime = replies[0].Created
+		if len(replies) != 0 {
+			topic.ReplyTime = replies[0].Created
+		}
 		topic.ReplyCount = len(replies)
-		_, err = orm.Update(topic)
+		_, err = orm.Id(tidNum).Update(topic)
 	}
 	return err
 }
