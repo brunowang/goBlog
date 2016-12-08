@@ -22,6 +22,11 @@ func (this *HomeController) Process(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	for i := 0; i < len(topics); i++ {
+		topics[i].Content = topics[i].Content[0:500]
+	}
+
 	data["Topics"] = topics
 
 	categories, err := models.GetAllCategories()
