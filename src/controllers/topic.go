@@ -151,6 +151,7 @@ func (this *TopicController) view(w http.ResponseWriter, r *http.Request) {
 	data := map[interface{}]interface{}{}
 	data["Topic"] = topic
 	data["Labels"] = strings.Split(topic.Labels, " ")
+	data["ContentLines"] = strings.Split(topic.Content, "\n")
 
 	replies, err := models.GetAllReplies(tid)
 	if err != nil {

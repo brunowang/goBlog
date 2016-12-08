@@ -11,6 +11,7 @@
 		<br/><br/>
 		<div class="container">
 			{{$labels := .Labels}}
+			{{$contentLines := .ContentLines}}
 			{{with .Topic}}
 			<h1>{{.Title}} <small>{{.Category}}</small></h1>
 			<h5>
@@ -18,7 +19,9 @@
 				<a href="/home?label={{.}}">{{.}}</a>
 				{{end}}
 			</h5>
-			{{.Content}}
+			{{range $i,$_ := $contentLines}}
+			<p>{{if not (eq $i 0)}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{end}}{{.}}</p>
+			{{end}}
 			<h5>附件：<a href="/attachment/{{.Attachment}}">{{.Attachment}}</a></h5>
 			{{end}}
 		</div>
