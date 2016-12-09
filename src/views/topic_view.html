@@ -20,7 +20,7 @@
 				{{end}}
 			</h5>
 			{{range $i,$_ := $contentLines}}
-			<p>{{if not (eq $i 0)}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{end}}{{.}}</p>
+			<p>{{range .Blank}}&nbsp;{{end}}{{.Text}}</p>
 			{{end}}
 			<h5>附件：<a href="/attachment/{{.Attachment}}">{{.Attachment}}</a></h5>
 			{{end}}

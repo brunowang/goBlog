@@ -40,3 +40,15 @@ func SaveToFile(r *http.Request, fromfile, tofile string) error {
 	_, err = io.Copy(f, file)
 	return err
 }
+
+func CountChar(str string) int {
+	cnt := 0
+	for i := 0; i < len(str); i++ {
+		if str[i] == ' ' {
+			cnt++
+		} else {
+			break
+		}
+	}
+	return cnt
+}

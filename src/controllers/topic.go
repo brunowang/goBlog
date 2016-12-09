@@ -140,6 +140,11 @@ func (this *TopicController) showModifyPage(w http.ResponseWriter, r *http.Reque
 	engine.Template(w, "topic_modify.html", data)
 }
 
+type ContentLine struct {
+	Blank []byte
+	Text  string
+}
+
 func (this *TopicController) view(w http.ResponseWriter, r *http.Request) {
 	tid := r.Form.Get("tid")
 	topic, err := models.GetTopic(tid)
@@ -151,7 +156,14 @@ func (this *TopicController) view(w http.ResponseWriter, r *http.Request) {
 	data := map[interface{}]interface{}{}
 	data["Topic"] = topic
 	data["Labels"] = strings.Split(topic.Labels, " ")
-	data["ContentLines"] = strings.Split(topic.Content, "\n")
+	lines := strings.Split(topic.Content, "\n")
+	length := len(lines)
+	contentLines := make([]*ContentLine, length)
+	for i := 0; i < length; i++ {
+		cnt := engine.CountChar(lines[i])
+		contentLines[i] = &ContentLine{Blank: make([]byte, cnt), Text: lines[i]}
+	}
+	data["ContentLines"] = contentLines
 
 	replies, err := models.GetAllReplies(tid)
 	if err != nil {
