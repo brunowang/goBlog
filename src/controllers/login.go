@@ -3,11 +3,12 @@ package controllers
 import (
 	"engine"
 	"log"
+	"models"
 	"net/http"
-	//"time"
 )
 
 type LoginController struct {
+	engine.ControllerInterface
 }
 
 func (this *LoginController) Process(w http.ResponseWriter, r *http.Request) {
@@ -27,8 +28,7 @@ func (this *LoginController) Process(w http.ResponseWriter, r *http.Request) {
 		autoLogin := r.Form.Get("autoLogin") == "on"
 
 		// 验证用户名及密码
-		if uname == engine.Config("adminName") &&
-			pwd == engine.Config("adminPass") {
+		if models.CheckAccount(uname, pwd) {
 			maxAge := 0
 			if autoLogin {
 				maxAge = 1<<31 - 1
@@ -60,6 +60,5 @@ func checkAccount(r *http.Request) bool {
 	}
 
 	pwd := ck.Value
-	return uname == engine.Config("adminName") &&
-		pwd == engine.Config("adminPass")
+	return models.CheckAccount(uname, pwd)
 }

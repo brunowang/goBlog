@@ -2,15 +2,15 @@ package main
 
 import (
 	"controllers"
+	"db"
 	"engine"
 	"log"
-	"models"
 	"net/http"
 	"os"
 )
 
 func init() {
-	models.RegisterDB()
+	db.RegisterDB()
 }
 
 func main() {
@@ -18,6 +18,7 @@ func main() {
 	dispatcher := engine.GetDispatcher()
 	dispatcher.AddHttpHandler("/home", &controllers.HomeController{})
 	dispatcher.AddHttpHandler("/login", &controllers.LoginController{})
+	dispatcher.AddHttpHandler("/register", &controllers.RegisterController{})
 	dispatcher.AddHttpHandler("/category", &controllers.CategoryController{})
 	dispatcher.AddHttpHandler("/topic", &controllers.TopicController{})
 	dispatcher.AddHttpHandler("/reply", &controllers.ReplyController{})

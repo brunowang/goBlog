@@ -13,7 +13,8 @@
 		{{if .IsLogin}}
 		<li><a href="/login?exit=true">退出登录</a></li>
 		{{else}}
-		<li><a href="/login">管理员登录</a></li>
+		<li><a href="/login">登录</a></li>
+		<li><a href="/register">注册</a></li>
 		{{end}}
 	</ul>
 </div>
