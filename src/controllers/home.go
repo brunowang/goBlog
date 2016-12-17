@@ -24,7 +24,9 @@ func (this *HomeController) Process(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i := 0; i < len(topics); i++ {
-		topics[i].Content = topics[i].Content[0:500]
+		if len(topics[i].Content) > 500 {
+			topics[i].Content = topics[i].Content[0:500]
+		}
 	}
 
 	data["Topics"] = topics
