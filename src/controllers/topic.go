@@ -45,8 +45,9 @@ func (this *TopicController) showTopicPage(w http.ResponseWriter, r *http.Reques
 	data := map[interface{}]interface{}{}
 	data["IsTopic"] = true
 	data["IsLogin"] = checkAccount(r)
+	data["UserName"] = getCookieUname(r)
 
-	topics, err := models.GetAllTopics("", "", false)
+	topics, err := models.GetAllTopics(getCookieAccountId(w, r), "", "", false)
 	if err != nil {
 		log.Println(err)
 	}
@@ -85,12 +86,12 @@ func (this *TopicController) addOrModify(w http.ResponseWriter, r *http.Request)
 	}
 
 	if len(tid) == 0 {
-		err = models.AddTopic(title, category, label, content, attachment)
+		err = models.AddTopic(getCookieAccountId(w, r), title, category, label, content, attachment)
 	} else {
-		err = models.ModifyTopic(tid, title, category, label, content, attachment)
+		err = models.ModifyTopic(getCookieAccountId(w, r), tid, title, category, label, content, attachment)
 	}
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	http.Redirect(w, r, "/topic", 302)
 }
@@ -101,7 +102,8 @@ func (this *TopicController) showAddPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	data := map[interface{}]interface{}{}
-	data["IsLogin"] = true
+	data["IsLogin"] = checkAccount(r)
+	data["UserName"] = getCookieUname(r)
 	engine.Template(w, "topic_add.html", data)
 }
 
@@ -111,7 +113,7 @@ func (this *TopicController) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := models.DeleteTopic(r.Form.Get("tid"))
+	err := models.DeleteTopic(getCookieAccountId(w, r), r.Form.Get("tid"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -135,7 +137,8 @@ func (this *TopicController) showModifyPage(w http.ResponseWriter, r *http.Reque
 	data := map[interface{}]interface{}{}
 	data["Topic"] = topic
 	data["Tid"] = tid
-	data["IsLogin"] = true
+	data["IsLogin"] = checkAccount(r)
+	data["UserName"] = getCookieUname(r)
 
 	engine.Template(w, "topic_modify.html", data)
 }
@@ -173,5 +176,6 @@ func (this *TopicController) view(w http.ResponseWriter, r *http.Request) {
 
 	data["Replies"] = replies
 	data["IsLogin"] = checkAccount(r)
+	data["UserName"] = getCookieUname(r)
 	engine.Template(w, "topic_view.html", data)
 }

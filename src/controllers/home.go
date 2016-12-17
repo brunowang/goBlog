@@ -17,8 +17,9 @@ func (this *HomeController) Process(w http.ResponseWriter, r *http.Request) {
 	data := map[interface{}]interface{}{}
 	data["IsHome"] = true
 	data["IsLogin"] = checkAccount(r)
+	data["UserName"] = getCookieUname(r)
 
-	topics, err := models.GetAllTopics(r.Form.Get("cate"), r.Form.Get("label"), true)
+	topics, err := models.GetAllTopics(getCookieAccountId(w, r), r.Form.Get("cate"), r.Form.Get("label"), true)
 	if err != nil {
 		log.Fatal(err)
 	}

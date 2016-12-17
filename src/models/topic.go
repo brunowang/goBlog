@@ -13,11 +13,12 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func AddTopic(title, category, label, content, attachment string) error {
+func AddTopic(uid int64, title, category, label, content, attachment string) error {
 	// 处理标签
 	label = "$" + strings.Join(strings.Split(label, " "), "#$") + "#"
 
 	topic := &db.Topic{
+		Uid:        uid,
 		Title:      title,
 		Category:   category,
 		Labels:     label,
@@ -34,7 +35,7 @@ func AddTopic(title, category, label, content, attachment string) error {
 	// 更新分类统计
 	cate := new(db.Category)
 	var topics []*db.Topic
-	topics, err = GetAllTopics(category, label, false)
+	topics, err = GetAllTopics(uid, category, label, false)
 	if err == nil {
 		cate.TopicCount = len(topics)
 		_, err = db.GetOrm().Where("title=?", category).Update(cate)
@@ -64,7 +65,7 @@ func GetTopic(tid string) (*db.Topic, error) {
 	return topic, nil
 }
 
-func ModifyTopic(tid, title, category, label, content, attachment string) error {
+func ModifyTopic(uid int64, tid, title, category, label, content, attachment string) error {
 	tidNum, err := strconv.ParseInt(tid, 10, 64)
 	if err != nil {
 		return err
@@ -97,7 +98,7 @@ func ModifyTopic(tid, title, category, label, content, attachment string) error 
 	if len(oldCate) > 0 {
 		cate := new(db.Category)
 		var topics []*db.Topic
-		topics, err = GetAllTopics(oldCate, oldLabel, false)
+		topics, err = GetAllTopics(uid, oldCate, oldLabel, false)
 		if err == nil {
 			cate.TopicCount = len(topics)
 			_, err = db.GetOrm().Where("title=?", oldCate).Update(cate)
@@ -112,7 +113,7 @@ func ModifyTopic(tid, title, category, label, content, attachment string) error 
 	// 更新新分类统计
 	cate := new(db.Category)
 	var topics []*db.Topic
-	topics, err = GetAllTopics(category, label, false)
+	topics, err = GetAllTopics(uid, category, label, false)
 	if err == nil {
 		cate.TopicCount = len(topics)
 		_, err = db.GetOrm().Where("title=?", category).Update(cate)
@@ -121,7 +122,7 @@ func ModifyTopic(tid, title, category, label, content, attachment string) error 
 	return err
 }
 
-func DeleteTopic(tid string) error {
+func DeleteTopic(uid int64, tid string) error {
 	tidNum, err := strconv.ParseInt(tid, 10, 64)
 	if err != nil {
 		return err
@@ -145,7 +146,7 @@ func DeleteTopic(tid string) error {
 	if len(oldCate) > 0 {
 		cate := new(db.Category)
 		var topics []*db.Topic
-		topics, err = GetAllTopics(oldCate, oldLabel, false)
+		topics, err = GetAllTopics(uid, oldCate, oldLabel, false)
 		if err == nil {
 			cate.TopicCount = len(topics)
 			_, err = db.GetOrm().Where("title=?", oldCate).Update(cate)
@@ -160,19 +161,23 @@ func DeleteTopic(tid string) error {
 	return err
 }
 
-func GetAllTopics(category, label string, isHomePage bool) (topics []*db.Topic, err error) {
+func GetAllTopics(uid int64, category, label string, isHomePage bool) (topics []*db.Topic, err error) {
 	topics = make([]*db.Topic, 0)
+	if uid == -1 {
+		return topics, nil
+	}
 	if isHomePage {
 		ormSession := db.GetOrm().Desc("created")
+		ormSession = ormSession.Where("uid=?", uid)
 		if len(category) > 0 {
-			ormSession = db.GetOrm().Where("category=?", category)
+			ormSession = ormSession.Where("category=?", category)
 		}
 		if len(label) > 0 {
 			ormSession = ormSession.Where("labels like ?", "%$"+label+"#%")
 		}
 		err = ormSession.Find(&topics)
 	} else {
-		err = db.GetOrm().Find(&topics)
+		err = db.GetOrm().Where("uid=?", uid).Find(&topics)
 	}
 	return topics, err
 }

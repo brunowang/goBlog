@@ -25,7 +25,6 @@ var (
 // 分类
 type Category struct {
 	Id              int64
-	Uid             int64
 	Title           string
 	Created         time.Time `xorm:"index"`
 	Views           int64     `xorm:"index"`

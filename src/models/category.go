@@ -8,11 +8,7 @@ import (
 )
 
 func AddCategory(name string) error {
-	cate := &db.Category{
-		Title:     name,
-		Created:   time.Now(),
-		TopicTime: time.Now(),
-	}
+	cate := new(db.Category)
 
 	// 查询数据
 	has, err := db.GetOrm().Where("title=?", name).Get(cate)
@@ -21,7 +17,11 @@ func AddCategory(name string) error {
 	}
 
 	// 插入数据
-	_, err = db.GetOrm().Insert(cate)
+	_, err = db.GetOrm().Insert(&db.Category{
+		Title:     name,
+		Created:   time.Now(),
+		TopicTime: time.Now(),
+	})
 	return err
 }
 

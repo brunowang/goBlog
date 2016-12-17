@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"db"
 	"engine"
 	"log"
 	"models"
@@ -47,18 +48,36 @@ func (this *LoginController) Process(w http.ResponseWriter, r *http.Request) {
 }
 
 func checkAccount(r *http.Request) bool {
+	return models.CheckAccount(getCookieUname(r), getCookiePwd(r))
+}
+
+func getCookieUname(r *http.Request) string {
 	ck, err := r.Cookie("uname")
 	if err != nil {
-		return false
+		return ""
 	}
-
 	uname := ck.Value
+	return uname
+}
 
-	ck, err = r.Cookie("pwd")
+func getCookiePwd(r *http.Request) string {
+	ck, err := r.Cookie("pwd")
 	if err != nil {
-		return false
+		return ""
 	}
-
 	pwd := ck.Value
-	return models.CheckAccount(uname, pwd)
+	return pwd
+}
+
+func getCookieAccount(w http.ResponseWriter, r *http.Request) *db.Account {
+	acc := models.GetAccount(getCookieUname(r), getCookiePwd(r))
+	return acc
+}
+
+func getCookieAccountId(w http.ResponseWriter, r *http.Request) int64 {
+	acc := getCookieAccount(w, r)
+	if acc == nil {
+		return -1
+	}
+	return acc.Id
 }

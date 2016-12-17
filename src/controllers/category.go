@@ -24,7 +24,7 @@ func (this *CategoryController) Process(w http.ResponseWriter, r *http.Request) 
 
 		err := models.AddCategory(name)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 
 		http.Redirect(w, r, "/category", 302)
@@ -37,7 +37,7 @@ func (this *CategoryController) Process(w http.ResponseWriter, r *http.Request) 
 
 		err := models.DeleteCategory(id)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 
 		http.Redirect(w, r, "/category", 302)
@@ -47,6 +47,7 @@ func (this *CategoryController) Process(w http.ResponseWriter, r *http.Request) 
 	data := map[interface{}]interface{}{}
 	data["IsCategory"] = true
 	data["IsLogin"] = checkAccount(r)
+	data["UserName"] = getCookieUname(r)
 
 	var err error
 	data["Categories"], err = models.GetAllCategories()
