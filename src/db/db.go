@@ -84,6 +84,7 @@ func RegisterDB() {
 		new(Reply),
 		new(Account),
 	)
+	//	orm.ShowSQL(true)
 }
 
 func GetOrm() *xorm.Engine {

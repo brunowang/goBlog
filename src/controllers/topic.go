@@ -91,7 +91,7 @@ func (this *TopicController) addOrModify(w http.ResponseWriter, r *http.Request)
 		err = models.ModifyTopic(getCookieAccountId(w, r), tid, title, category, label, content, attachment)
 	}
 	if err != nil {
-		log.Println(err)
+		log.Println("TopicController, addOrModify err:", err)
 	}
 	http.Redirect(w, r, "/topic", 302)
 }
@@ -115,7 +115,7 @@ func (this *TopicController) delete(w http.ResponseWriter, r *http.Request) {
 
 	err := models.DeleteTopic(getCookieAccountId(w, r), r.Form.Get("tid"))
 	if err != nil {
-		log.Fatal(err)
+		log.Println("TopicController, delete err:", err)
 	}
 
 	http.Redirect(w, r, "/topic", 302)
