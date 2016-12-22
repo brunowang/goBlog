@@ -4,8 +4,6 @@ import (
 	"db"
 	"strconv"
 	"time"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func AddReply(tid, nickname, content string) error {
