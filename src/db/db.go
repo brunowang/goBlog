@@ -1,21 +1,18 @@
 package db
 
 import (
-	"engine"
 	"log"
-	"os"
-	"path"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
-	// 设置数据库路径
-	_DB_NAME = "data/goBlog.db"
-	// 设置数据库名称
-	_SQLITE3_DRIVER = "sqlite3"
+	// 设置Mysql数据源
+	_MYSQL_DB_NAME = "brunowang:111111@(123.56.29.218:3306)/goBlog"
+	// 设置Mysql驱动名称
+	_MYSQL_DRIVER = "mysql"
 )
 
 var (
@@ -68,13 +65,8 @@ type Account struct {
 }
 
 func RegisterDB() {
-	// 检查数据库文件
-	if !engine.IsExist(_DB_NAME) {
-		os.MkdirAll(path.Dir(_DB_NAME), os.ModePerm)
-		os.Create(_DB_NAME)
-	}
 	var err error
-	orm, err = xorm.NewEngine(_SQLITE3_DRIVER, _DB_NAME)
+	orm, err = xorm.NewEngine(_MYSQL_DRIVER, _MYSQL_DB_NAME)
 	if err != nil {
 		log.Fatalf("fail to create xorm Engine: %v", err)
 	}
