@@ -4,19 +4,19 @@ import (
 	"log"
 	"time"
 
+	"github.com/Unknwon/goconfig"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 )
 
 const (
-	// 设置Mysql数据源
-	_MYSQL_DB_NAME = "brunowang:111111@(123.56.29.218:3306)/goBlog"
 	// 设置Mysql驱动名称
 	_MYSQL_DRIVER = "mysql"
 )
 
 var (
 	orm *xorm.Engine
+	cfg *goconfig.ConfigFile
 )
 
 // 分类
@@ -65,8 +65,10 @@ type Account struct {
 }
 
 func RegisterDB() {
+	cfg = loadConfig()
+	_MYSQL_DB_SOURCE := getDbConf("uname") + ":" + getDbConf("pwd") + "@(" + getDbConf("host") + ":" + getDbConf("port") + ")/" + getDbConf("db_name")
 	var err error
-	orm, err = xorm.NewEngine(_MYSQL_DRIVER, _MYSQL_DB_NAME)
+	orm, err = xorm.NewEngine(_MYSQL_DRIVER, _MYSQL_DB_SOURCE)
 	if err != nil {
 		log.Fatalf("fail to create xorm Engine: %v", err)
 	}
@@ -81,4 +83,21 @@ func RegisterDB() {
 
 func GetOrm() *xorm.Engine {
 	return orm
+}
+
+func loadConfig() *goconfig.ConfigFile {
+	cfg, err := goconfig.LoadConfigFile("conf/db.conf")
+	if err != nil {
+		log.Fatalf("无法加载配置文件：%s", err)
+	}
+	return cfg
+}
+
+func getDbConf(key string) string {
+	section := "mysql"
+	value, err := cfg.GetValue(section, key)
+	if err != nil {
+		log.Fatalf("无法获取键值（%s）：%s", key, err)
+	}
+	return value
 }
