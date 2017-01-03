@@ -159,12 +159,13 @@ func DeleteTopic(uid int64, tid string) error {
 
 func GetAllTopics(uid int64, category, label string, isHomePage bool) (topics []*db.Topic, err error) {
 	topics = make([]*db.Topic, 0)
-	if uid == -1 {
-		return topics, nil
-	}
-	ormSession := db.GetOrm().Where("uid=?", uid)
+	ormSession := db.GetOrm().Where("1=1")
 	if isHomePage {
 		ormSession = ormSession.Desc("created")
+	} else if uid == -1 {
+		return topics, nil
+	} else {
+		ormSession = ormSession.Where("uid=?", uid)
 	}
 	if len(category) > 0 {
 		ormSession = ormSession.Where("category=?", category)
