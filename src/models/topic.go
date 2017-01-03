@@ -33,7 +33,7 @@ func AddTopic(uid int64, title, category, label, content, attachment string) err
 	// 更新分类统计
 	cate := new(db.Category)
 	var topics []*db.Topic
-	topics, err = GetAllTopics(uid, category, "", false)
+	topics, err = GetAllTopics(-2, category, "", false)
 	if err == nil {
 		cate.TopicCount = len(topics)
 		_, err = db.GetOrm().Where("title=?", category).Cols("topic_count").Update(cate)
@@ -95,7 +95,7 @@ func ModifyTopic(uid int64, tid, title, category, label, content, attachment str
 	if len(oldCate) > 0 {
 		cate := new(db.Category)
 		var topics []*db.Topic
-		topics, err = GetAllTopics(uid, oldCate, "", false)
+		topics, err = GetAllTopics(-2, oldCate, "", false)
 		if err == nil {
 			cate.TopicCount = len(topics)
 			_, err = db.GetOrm().Where("title=?", oldCate).Cols("topic_count").Update(cate)
@@ -110,7 +110,7 @@ func ModifyTopic(uid int64, tid, title, category, label, content, attachment str
 	// 更新新分类统计
 	cate := new(db.Category)
 	var topics []*db.Topic
-	topics, err = GetAllTopics(uid, category, "", false)
+	topics, err = GetAllTopics(-2, category, "", false)
 	if err == nil {
 		cate.TopicCount = len(topics)
 		_, err = db.GetOrm().Where("title=?", category).Cols("topic_count").Update(cate)
@@ -142,7 +142,7 @@ func DeleteTopic(uid int64, tid string) error {
 	if len(oldCate) > 0 {
 		cate := new(db.Category)
 		var topics []*db.Topic
-		topics, err = GetAllTopics(uid, oldCate, "", false)
+		topics, err = GetAllTopics(-2, oldCate, "", false)
 		if err == nil {
 			cate.TopicCount = len(topics)
 			_, err = db.GetOrm().Where("title=?", oldCate).Cols("topic_count").Update(cate)
@@ -164,6 +164,8 @@ func GetAllTopics(uid int64, category, label string, isHomePage bool) (topics []
 		ormSession = ormSession.Desc("created")
 	} else if uid == -1 {
 		return topics, nil
+	} else if uid == -2 {
+
 	} else {
 		ormSession = ormSession.Where("uid=?", uid)
 	}
