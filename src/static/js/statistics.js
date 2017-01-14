@@ -258,7 +258,7 @@ function ar_get_random(n) {
 function ar_main() {
 	
 	var unit_id     = "9999";//网站id
-	var dest_path   = "http://172.17.143.151:8090/LogCollector/collect?unit_id="+unit_id; 
+	var dest_path   = "http://123.56.29.218:8090/log_collect/collect?unit_id="+unit_id; 
 	var expire_time = 30 * 60 * 1000;//会话超时时长
 	
 	//处理uv
